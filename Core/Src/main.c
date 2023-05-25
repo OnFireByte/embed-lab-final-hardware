@@ -120,6 +120,7 @@ void DHT11_Start()
 uint8_t DHT11_Check_Response()
 	{
 		uint8_t Response = 0;
+		long start = HAL_GetTick();
 		delay (40);
 		if (!(HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)))
 		{
@@ -132,27 +133,34 @@ uint8_t DHT11_Check_Response()
 			Response = -1;
 		}
 		while ((HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN))){
-			  // wait for the pin to go low
+//			  // wait for the pin to go low
+			if(HAL_GetTick()-start > 1000) NVIC_SystemReset();
 		}
 
 		return Response;
 	}
 
-uint8_t DHT11_Read()
-	{
+uint8_t DHT11_Read(){
+
+		long start = HAL_GetTick();
 		uint8_t i,j;
 		for (j=0;j<8;j++)
 		{
 
-			while (!(HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)));   // wait for the pin to go high
+			while (!(HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN))){
+				if(HAL_GetTick()-start > 1000) NVIC_SystemReset();
+			}
+//			delay(400);// wait for the pin to go high
 			delay (40);   // wait for 40 us
 			if (!(HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)))   // if the pin is low
 			{
 				i&= ~(1<<(7-j));   // write 0
 			}
 			else i|= (1<<(7-j));  // if the pin is high, write 1
-			while ((HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)));  // wait for the pin to go low
-
+			while ((HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN))){
+				if(HAL_GetTick()-start > 1000) NVIC_SystemReset();
+			};  // wait for the pin to go low
+//			delay(400);
 		}
 
 		return i;}
